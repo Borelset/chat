@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <stdlib.h>
+#include <stdio.h>
 #include "database.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -56,7 +57,7 @@ database::database(char * path)
         std::cerr << "fail in open db\n";
     }
     sqlite3_exec(db, "select count(*) from user;", getcount, &count, &dbErr);
-    if(dbErr != nullptr)
+    if(dbErr != NULL)
     {
         cout << dbErr << endl;
     }
