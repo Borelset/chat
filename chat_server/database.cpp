@@ -3,7 +3,6 @@
 #include <iostream>
 #include <string>
 #include <stdlib.h>
-#include <stdio.h>
 #include "database.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -57,7 +56,7 @@ database::database(char * path)
         std::cerr << "fail in open db\n";
     }
     sqlite3_exec(db, "select count(*) from user;", getcount, &count, &dbErr);
-    if(dbErr != NULL)
+    if(dbErr != nullptr)
     {
         cout << dbErr << endl;
     }
@@ -165,4 +164,45 @@ int database::dest_addr(char* username, sockaddr* dest)
 
     sqlite3_exec(db, sql_sen.c_str(), getsockaddr, dest, &dbErr);
     return 0;
+}
+
+int database::is_exist(char *username)
+{
+    string sql_sen;
+    sql_sen = sql_sen + "select id from verify where id = " + itoa(user_id_search(username)) + ";";
+
+    int get_count = -1;
+    sqlite3_exec(db, sql_sen.c_str(), getcount, &get_count, &dbErr);
+    if(get_count != -1)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int _cmp(sockaddr_in* addr1, sockaddr_in* addr2)
+{
+    return !strcmp(inet_ntoa(addr1->sin_addr), inet_ntoa(addr2->sin_addr)) && (addr1->sin_port == addr2->sin_port);
+}
+
+int database::addr_cmp(sockaddr_in* sorc_addr, char *sorc)
+{
+    string sql_sen;
+    sql_sen = sql_sen + "select ip, port from verify where id = " + itoa(user_id_search(sorc)) + ";";
+
+    struct sockaddr_in sorc_database;
+    memset(&sorc_database, 0, sizeof(sockaddr));
+    sqlite3_exec(db, sql_sen.c_str(), getsockaddr, &sorc_database, &dbErr);
+
+    if(_cmp(&sorc_database, sorc_addr))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }

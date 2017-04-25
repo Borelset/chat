@@ -5,7 +5,6 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdio.h>
 #include "server.h"
 #include "database.h"
 
@@ -150,7 +149,15 @@ int transfer_server(int port, database* db)
         tran_buffer_analysis(recvbuffer, sorc, dest);
         cout << recvbuffer << endl;
 
-        if(!db->is_online(db->user_id_search(dest)))
+        if(!db->addr_cmp(&cliaddr, sorc))
+        {
+            bad_verify_reply(tranfd, sorc, dest, (struct sockaddr*)&cliaddr, sockaddr_length);
+        }
+        else if(!db->is_exist(dest))
+        {
+            not_exist_reply(tranfd, sorc, dest, (struct sockaddr*)&cliaddr, sockaddr_length);
+        }
+        else if(!db->is_online(db->user_id_search(dest)))
         {
             off_reply(tranfd, sorc, dest, (struct sockaddr*)&cliaddr, sockaddr_length);
         }
@@ -209,6 +216,22 @@ int tran_buffer_analysis(char* buffer, char* sorc, char* dest)
             break;
         }
     }
+}
+
+int bad_verify_reply(int fd, char* sorc, char* dest, struct sockaddr* addr, socklen_t len)
+{
+    string sendbuf;
+    sendbuf = sendbuf + "server>" + sorc + " fail in verify";
+    sendto(fd, sendbuf.c_str(), strlen(sendbuf.c_str()), 0, addr, len);
+    return 0;
+}
+
+int not_exist_reply(int fd, char* sorc, char* dest, struct sockaddr* addr, socklen_t len)
+{
+    string sendbuf;
+    sendbuf = sendbuf + "server>" + sorc + " " + dest + " does not exist";
+    sendto(fd, sendbuf.c_str(), strlen(sendbuf.c_str()), 0, addr, len);
+    return 0;
 }
 
 int off_reply(int fd, char* sorc, char* dest, sockaddr* addr, socklen_t len)
