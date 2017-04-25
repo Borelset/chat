@@ -186,6 +186,10 @@ int database::is_exist(char *username)
 
 int _cmp(sockaddr_in* addr1, sockaddr_in* addr2)
 {
+    cout << inet_ntoa(addr1->sin_addr) << endl;
+    cout << inet_ntoa(addr2->sin_addr) << endl;
+    cout << addr1->sin_port << endl;
+    cout << addr2->sin_port << endl;
     return !strcmp(inet_ntoa(addr1->sin_addr), inet_ntoa(addr2->sin_addr)) && (addr1->sin_port == addr2->sin_port);
 }
 
