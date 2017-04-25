@@ -22,6 +22,7 @@ public:
     int dest_addr(char* username, sockaddr* dest);
     int is_exist(char* username);
     int addr_cmp(struct sockaddr_in* sorc_addr, char* sorc);
+    int confirm_port(char *username, int port);
 };
 std::string itoa(int num);
 

@@ -151,8 +151,11 @@ int transfer_server(int port, database* db)
         cout << "recv from: " << inet_ntoa(cliaddr.sin_addr) << ":" << cliaddr.sin_port << endl;
         cout << recvbuffer << endl;
 
-        if(0)
-        //if(!db->addr_cmp(&cliaddr, sorc))
+        if(!strcmp(dest, "server"))
+        {
+            db->confirm_port(sorc, cliaddr.sin_port);
+        }
+        else if(!db->addr_cmp(&cliaddr, sorc))
         {
             bad_verify_reply(tranfd, sorc, dest, (struct sockaddr*)&cliaddr, sockaddr_length);
         }

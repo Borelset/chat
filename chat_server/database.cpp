@@ -34,7 +34,7 @@ int getstring(void* password, int n_column, char** p_value, char** p_name)
 
 int getsockaddr(void* sockaddr, int n_column, char** p_value, char** p_name)
 {
-    ((struct sockaddr_in*)sockaddr)->sin_port = htons(atoi(p_value[1]));
+    ((struct sockaddr_in*)sockaddr)->sin_port = atoi(p_value[1]);
     ((struct sockaddr_in*)sockaddr)->sin_addr.s_addr = inet_addr(p_value[0]);
     return 0;
 }
@@ -121,7 +121,7 @@ int database::online(char* username, char *key, char* ip, const char* port)
         return -1;
     }
     string sql_sen;
-    sql_sen = sql_sen + "insert into verify(id, key, ip, port) values(" + itoa(user_id_search(username)) + ", \"" + key + "\", \"" + ip + "\", \"" + port + "\");";
+    sql_sen = sql_sen + "insert into verify(id, key, ip, port, tag) values(" + itoa(user_id_search(username)) + ", \"" + key + "\", \"" + ip + "\", \"" + port + "\", 0);";
 
     sqlite3_exec(db, sql_sen.c_str(), NULL, NULL, &dbErr);
     if(dbErr != NULL)
@@ -186,10 +186,6 @@ int database::is_exist(char *username)
 
 int _cmp(sockaddr_in* addr1, sockaddr_in* addr2)
 {
-    cout << inet_ntoa(addr1->sin_addr) << endl;
-    cout << inet_ntoa(addr2->sin_addr) << endl;
-    cout << addr1->sin_port << endl;
-    cout << addr2->sin_port << endl;
     return !strcmp(inet_ntoa(addr1->sin_addr), inet_ntoa(addr2->sin_addr)) && (addr1->sin_port == addr2->sin_port);
 }
 
@@ -208,6 +204,29 @@ int database::addr_cmp(sockaddr_in* sorc_addr, char *sorc)
     }
     else
     {
+        return 0;
+    }
+}
+
+int database::confirm_port(char *username, int port)
+{
+    int tag_database = -1;
+    string sql_sen;
+    sql_sen = sql_sen + "select tag from verify where id = " + itoa(user_id_search(username)) + ";";
+    sqlite3_exec(db, sql_sen.c_str(), getcount, &tag_database, &dbErr);
+    if(tag_database == 1)
+    {
+        return -1;
+    }
+    else
+    {
+        sql_sen = "";
+        sql_sen = sql_sen + "update verify set tag = 1, port = " + itoa(port) + " where id = " + itoa(user_id_search(username)) + ";";
+        sqlite3_exec(db, sql_sen.c_str(), NULL, NULL, &dbErr);
+        if(dbErr != NULL)
+        {
+            cout << dbErr << endl;
+        }
         return 0;
     }
 }
