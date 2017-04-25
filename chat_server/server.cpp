@@ -148,6 +148,7 @@ int transfer_server(int port, database* db)
         buf_init(sorc, 20);
         buf_init(dest, 20);
         tran_buffer_analysis(recvbuffer, sorc, dest);
+        cout << "recv from: " << inet_ntoa(cliaddr.sin_addr) << ":" << cliaddr.sin_port << endl;
         cout << recvbuffer << endl;
 
         if(0)
@@ -246,7 +247,7 @@ int off_reply(int fd, char* sorc, char* dest, sockaddr* addr, socklen_t len)
 
 int transmit(int fd, char* buf, sockaddr* addr, socklen_t len)
 {
-    cout << "sendto: " << inet_ntoa(((sockaddr_in*)addr)->sin_addr) << endl;
+    cout << "sendto: " << inet_ntoa(((sockaddr_in*)addr)->sin_addr) << ":" << ((sockaddr_in*)addr)->sin_port << endl;
     sendto(fd, buf, strlen(buf), 0, addr, len);
     return 0;
 }
