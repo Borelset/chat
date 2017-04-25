@@ -3,10 +3,11 @@
 #include <iostream>
 #include <string>
 #include <stdlib.h>
-#include "database.h"
+#include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include "database.h"
 
 #define MAX_USERNAME 20
 #define MAX_PASSWORD 20
@@ -56,7 +57,7 @@ database::database(char * path)
         std::cerr << "fail in open db\n";
     }
     sqlite3_exec(db, "select count(*) from user;", getcount, &count, &dbErr);
-    if(dbErr != nullptr)
+    if(dbErr != NULL)
     {
         cout << dbErr << endl;
     }
