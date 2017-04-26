@@ -6,15 +6,17 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
 #include "server.h"
 #include "database.h"
-
+#include "log.h"
 
 using namespace std;
+extern _log logout;
 
 int server_start(int port1, int port2)
 {
-    cout << "server starting .. \n";
+    logout << "server starting .. " << logout;
     database user("./database.db");
 
     int pid = fork();
@@ -39,15 +41,15 @@ int login_server(int port1, int port2, database* db)
     int loginfd = socket(AF_INET, SOCK_STREAM, 0);
     if(loginfd < 0)
     {
-        perror("login socket: ");
+        logout << "login socket: " << strerror(errno) << logout;
     }
     if(bind(loginfd, (struct sockaddr*)&log_addr, sizeof(sockaddr)) < 0)
     {
-        perror("login bind: ");
+        logout << "login bind: " << strerror(errno) << logout;
     }
 
     listen(loginfd, 100);
-    cout << "login server ready, running at port: " << port1 << " ..\n";
+    logout << "login server ready, running at port: " << port1 << " .." << logout;
     int clifd = -1;
     int tag = 0;
     struct sockaddr_in cliaddr;
@@ -61,11 +63,11 @@ int login_server(int port1, int port2, database* db)
         clifd = accept(loginfd, (struct sockaddr*)&cliaddr, &sockaddr_length);
         if(clifd < 0)
         {
-            perror("login accept: ");
+            logout << "login accept: " << strerror(errno) << logout;
         }
         else
         {
-            cout << "accept a connection from: " << inet_ntoa(cliaddr.sin_addr) << ":" << itoa(cliaddr.sin_port) << endl;
+            logout << "accept a connection from: " << inet_ntoa(cliaddr.sin_addr) << ":" << (int)cliaddr.sin_port << logout;
 
             recv(clifd, recvbuffer, 50, 0);
             tag = login_buffer_analysis(recvbuffer, username, password);
@@ -78,7 +80,7 @@ int login_server(int port1, int port2, database* db)
                     string sendbuffer = "201 1 1 1 ";
                     send(clifd, sendbuffer.c_str(), strlen(sendbuffer.c_str()) + 4, 0);
                 }
-                cout << username << " has login.." << endl;
+                logout << username << " has login.." << logout;
                 string sendbuffer = "200 ";
                 sendbuffer = sendbuffer + inet_ntoa(cliaddr.sin_addr) + " " + itoa(cliaddr.sin_port) + " " + itoa(port2)+ " ";
                 send(clifd, sendbuffer.c_str(), strlen(sendbuffer.c_str()) + 4, 0);
@@ -88,7 +90,7 @@ int login_server(int port1, int port2, database* db)
             {
                 if(db->regist(username, password) == 0)
                 {
-                    cout << username << " has regist.." << endl;
+                    logout << username << " has regist.." << logout;
                     send(clifd, "203 1 1 1 ", 11, 0);
                     close(clifd);
                 }
@@ -100,7 +102,7 @@ int login_server(int port1, int port2, database* db)
             }
             else if(tag == 99)
             {
-                cout << username << " has logout.." << endl;
+                logout << username << " has logout.." << logout;
                 db->offline(username);
                 close(clifd);
             }
@@ -124,14 +126,14 @@ int transfer_server(int port, database* db)
     int tranfd = socket(AF_INET, SOCK_DGRAM, 0);
     if(tranfd < 0)
     {
-        perror("tran socket: ");
+        logout << "tran socket: " << strerror(errno) << logout;
     }
     if(bind(tranfd, (struct sockaddr*)&tran_addr, sizeof(sockaddr)) < 0)
     {
-        perror("tran bind: ");
+        logout << "tran bind: " << strerror(errno) << logout;
     }
 
-    cout << "transfer server ready, running at port: " << port << " ..\n";
+    logout << "transfer server ready, running at port: " << port << " .." << logout;
     struct sockaddr_in cliaddr;
     socklen_t sockaddr_length = sizeof(sockaddr);
     char recvbuffer[300];
@@ -143,13 +145,13 @@ int transfer_server(int port, database* db)
         buf_init(recvbuffer, 300);
         if(recvfrom(tranfd, recvbuffer, 300, 0, (struct sockaddr*)&cliaddr, &sockaddr_length)<0)
         {
-            perror("tran recvfrom: ");
+            logout << "tran recvfrom: " << strerror(errno) << logout;
         }
         buf_init(sorc, 20);
         buf_init(dest, 20);
         tran_buffer_analysis(recvbuffer, sorc, dest);
-        cout << "recv from: " << inet_ntoa(cliaddr.sin_addr) << ":" << cliaddr.sin_port << endl;
-        cout << recvbuffer << endl;
+        logout << "recv from: " << inet_ntoa(cliaddr.sin_addr) << ":" << (int)cliaddr.sin_port << logout;
+        logout << recvbuffer << logout;
 
         if(!strcmp(dest, "server"))
         {
@@ -250,7 +252,7 @@ int off_reply(int fd, char* sorc, char* dest, sockaddr* addr, socklen_t len)
 
 int transmit(int fd, char* buf, sockaddr* addr, socklen_t len)
 {
-    cout << "sendto: " << inet_ntoa(((sockaddr_in*)addr)->sin_addr) << ":" << ((sockaddr_in*)addr)->sin_port << endl;
+    logout << "sendto: " << inet_ntoa(((sockaddr_in*)addr)->sin_addr) << ":" << ((sockaddr_in*)addr)->sin_port << logout;
     sendto(fd, buf, strlen(buf), 0, addr, len);
     return 0;
 }

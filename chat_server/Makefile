@@ -1,2 +1,2 @@
 all:
-	g++ main.cpp database.cpp secure.cpp server.cpp -o char_server -lsqlite3
+	g++ -std=c++11 main.cpp database.cpp secure.cpp server.cpp log.cpp -o char_server -lsqlite3
