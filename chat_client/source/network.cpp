@@ -1,3 +1,4 @@
+#include <QSettings>
 #include <string>
 #include <string.h>
 #include <netinet/in.h>
@@ -7,19 +8,28 @@
 
 #include <iostream>
 
-#define SERVER_IP "123.206.206.120"
-#define SERVER_LOGIN_PORT 1234
+//#define SERVER_IP "123.206.206.120"
+//#define SERVER_LOGIN_PORT 1234
 
 using namespace std;
 
+char SERVER_IP[20] = "123.206.206.120";
+char SERVER_LOGIN_PORT[5] = "1234";
+
 network::network()
 {
+    QSettings *configIniRead = new QSettings("./config.ini", QSettings::IniFormat);
+    QString ipResult = configIniRead->value("/server_address/ip").toString();
+    QString portResult = configIniRead->value("/server_address/port").toString();
+    strcpy(SERVER_IP, ipResult.toStdString().c_str());
+    strcpy(SERVER_LOGIN_PORT, portResult.toStdString().c_str());
+
     logfd = socket(AF_INET, SOCK_STREAM, 0);
 
     memset(&login_server, 0, sizeof(sockaddr));
     ((struct sockaddr_in*)&login_server)->sin_family = AF_INET;
     ((struct sockaddr_in*)&login_server)->sin_addr.s_addr = inet_addr(SERVER_IP);
-    ((struct sockaddr_in*)&login_server)->sin_port = htons(SERVER_LOGIN_PORT);
+    ((struct sockaddr_in*)&login_server)->sin_port = htons(atoi(SERVER_LOGIN_PORT));
 }
 
 network::~network()
@@ -71,10 +81,10 @@ int network::login(const char *username, const char *password)
         ((struct sockaddr_in*)&trans_server)->sin_addr.s_addr = inet_addr(SERVER_IP);
         ((struct sockaddr_in*)&trans_server)->sin_port = htons(atoi(tranport));
         */
-        q_trans_server.setAddress(SERVER_IP);
+        QString q_ip(SERVER_IP);
+        q_trans_server.setAddress(q_ip);
         q_native.setAddress(myip);
         q_trans_sock.bind(atoi(myport), QUdpSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
-        cout << q_trans_sock.state() << endl;
 
         //transfd = socket(AF_INET, SOCK_DGRAM, 0);
         //bind(transfd, (struct sockaddr*)&native, sizeof(sockaddr));

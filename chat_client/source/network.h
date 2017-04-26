@@ -22,7 +22,6 @@ public:
     int my_port = -1;
     int trans_server_port = -1;
     int log_tag = 0;
-
     network();
     ~network();
     int login(const char* username, const char* password);
